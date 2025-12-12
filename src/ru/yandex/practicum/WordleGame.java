@@ -1,8 +1,10 @@
 package ru.yandex.practicum;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /*
 в этом классе хранится словарь и состояние игры
@@ -21,37 +23,63 @@ public class WordleGame {
     private int steps;
     private WordleDictionary dictionary;
     private final PrintWriter printWriter;
-    private List<String> allSuggestedWords;
+    private Set<Character> restrictedLetters;
+    private Map<Character, Set<Integer>> rightLetters;
+    private final int maxStepCount = 6;
+    private final int wordsLength = 5;
 
     public WordleGame(WordleDictionary dictionary, PrintWriter printWriter) {
         this.dictionary = dictionary;
-        this.steps = 6;
+        this.steps = maxStepCount;
         this.printWriter = printWriter;
-        allSuggestedWords = new ArrayList<>();
         answer = dictionary.getRandomWord(false);
+        rightLetters = new HashMap<>();
+        restrictedLetters = new HashSet<>();
     }
 
-    public String makeSuggestion(String suggestionWord) {
+    public String makeSuggestion(String suggestionWord) throws WordleException {
         StringBuilder clue = new StringBuilder();
-        steps--;
         try {
-            allSuggestedWords.add(suggestionWord);
+            if (suggestionWord == null || suggestionWord.trim().isEmpty()) {
+                throw new EmptyWordException();
+            }
+
+            if (suggestionWord.length() != wordsLength) {
+                throw new InvalidWordLengthException(wordsLength);
+            }
+
+            if (!dictionary.isWordInDictionary(suggestionWord)) {
+                throw new WordNotInDictionaryException();
+            }
+
+            steps--;
             if (answer.equals(suggestionWord)) {
                 return "+++++";
             } else {
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < wordsLength; i++) {
                     if (answer.charAt(i) == suggestionWord.charAt(i)) {
-                        clue.insert(i, '+');
+                        clue.append('+');
+                        if (!rightLetters.containsKey(answer.charAt(i))) {
+                            rightLetters.put(answer.charAt(i), new HashSet<>());
+                        }
+                        rightLetters.get(answer.charAt(i)).add(i);
                     } else if (answer.contains(String.valueOf(suggestionWord.charAt(i)))) {
-                        clue.insert(i, '^');
+                        clue.append('^');
+                        if (!rightLetters.containsKey(answer.charAt(i))) {
+                            rightLetters.put(answer.charAt(i), new HashSet<>());
+                        }
                     } else {
-                        clue.insert(i, '-');
+                        clue.append('-');
+                        restrictedLetters.add(answer.charAt(i));
                     }
                 }
                 dictionary.updateDependingOnClues(suggestionWord, String.valueOf(clue));
             }
+        } catch (WordleException e) {
+            printWriter.println(e.getMessage());
+            throw e;
         } catch (Exception e) {
-            printWriter.write(e.getMessage());
+            printWriter.println(e.getMessage());
         }
         return String.valueOf(clue);
     }
@@ -67,5 +95,4 @@ public class WordleGame {
     public String getRandomWord() {
         return dictionary.getRandomWord(true);
     }
-
 }

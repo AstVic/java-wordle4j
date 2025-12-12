@@ -23,7 +23,7 @@ public class WordleDictionaryLoader {
 
     public WordleDictionary getWordleDictionary() throws IOException {
         try (BufferedReader bufferedReader =
-                     new BufferedReader(new InputStreamReader(new FileInputStream(file.getName()),
+                     new BufferedReader(new InputStreamReader(new FileInputStream(file.getAbsolutePath()),
                              StandardCharsets.UTF_8))) {
 
             words = new ArrayList<>();

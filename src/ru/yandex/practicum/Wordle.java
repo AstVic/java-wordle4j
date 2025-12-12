@@ -15,8 +15,9 @@ import java.util.Scanner;
  */
 public class Wordle {
 
-    public static void main(String[] args) {
-        try (PrintWriter printWriter = new PrintWriter("logFile.txt")) {
+    public static void main(String[] args) throws IOException {
+        try (PrintWriter printWriter = new PrintWriter(
+                new FileWriter("logFile.txt", false), true)) {
             try {
                 Scanner scanner = new Scanner(System.in);
 
@@ -33,13 +34,29 @@ public class Wordle {
                     String suggestedWord = scanner.nextLine();
                     suggestedWord = suggestedWord.trim();
                     suggestedWord = suggestedWord.toLowerCase();
-                    if (suggestedWord.isBlank() | suggestedWord.isEmpty()) {
+                    suggestedWord = suggestedWord.replace("ё", "е");
+                    if (suggestedWord.isBlank()) {
                         System.out.println(wordleGame.getRandomWord());
-                    } else if (!wordleDictionary.isWordInDictionary(suggestedWord)) {
-                        System.out.println("Такого слова нет в словаре!");
                     } else {
-                        clue = wordleGame.makeSuggestion(suggestedWord);
-                        System.out.println(clue);
+                        try {
+                            if (!wordleDictionary.isWordInDictionary(suggestedWord)) {
+                                throw new WordNotInDictionaryException();
+                            }
+                            clue = wordleGame.makeSuggestion(suggestedWord);
+                            System.out.println(clue);
+                        } catch (WordNotInDictionaryException e) {
+                            System.out.println("Такого слова нет в словаре!");
+                            printWriter.println("WordNotInDictionaryException: " + e.getMessage());
+                        } catch (InvalidWordLengthException e) {
+                            System.out.println("Недопустимая длина слова");
+                            printWriter.println("InvalidWordLengthException: " + e.getMessage());
+                        } catch (EmptyWordException e) {
+                            System.out.println("Введена пустая строка");
+                            printWriter.println("EmptyWordException: " + e.getMessage());
+                        } catch (WordleException e) {
+                            System.out.println("Ошибка ввода");
+                            printWriter.println("WordleException: " + e.getMessage());
+                        }
                     }
                     System.out.println();
                 }
@@ -49,7 +66,7 @@ public class Wordle {
                     System.out.println("Слово угадано!");
                 }
             } catch (Exception e) {
-                printWriter.write(Arrays.toString(e.getStackTrace()));
+                printWriter.println("Критическая ошибка: " + e.getMessage());
             }
         } catch (IOException e) {
             System.out.println("Не удалось создать лог-файл.");

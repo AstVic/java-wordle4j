@@ -4,10 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;gi
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,7 +20,6 @@ class WordleTest {
     static void setUpAll() throws IOException {
         printWriter = new PrintWriter(System.out);
 
-        // Создаем тестовый файл словаря
         try (PrintWriter writer = new PrintWriter(testFile, StandardCharsets.UTF_8)) {
             writer.println("apPle ");
             writer.println("TABLE");
@@ -81,9 +78,17 @@ class WordleTest {
     @Test
     void testStepsDecrementOnGuess() {
         int initialSteps = wordleGame.getStepsLeft();
-        wordleGame.makeSuggestion("table");
+        try {
+            wordleGame.makeSuggestion("table");
+        } catch (Exception e) {
+            fail("Не должно было быть исключения для слова table");
+        }
         assertEquals(initialSteps - 1, wordleGame.getStepsLeft());
-        wordleGame.makeSuggestion("chair");
+        try {
+            wordleGame.makeSuggestion("chair");
+        } catch (Exception e) {
+            fail("Не должно было быть исключения для слова chair");
+        }
         assertEquals(initialSteps - 2, wordleGame.getStepsLeft());
     }
 
@@ -93,7 +98,11 @@ class WordleTest {
         assertTrue(wordleGame.isStepsCountEnough());
 
         for (int i = 0; i < 6; i++) {
-            wordleGame.makeSuggestion("wrong");
+            try {
+                wordleGame.makeSuggestion("water");
+            } catch (Exception e) {
+                fail("Не должно было быть исключения для слова water");
+            }
         }
 
         assertEquals(0, wordleGame.getStepsLeft());
@@ -102,7 +111,12 @@ class WordleTest {
 
     @Test
     void testClueFormat() {
-        String clue = wordleGame.makeSuggestion("abcde");
+        String clue = "";
+        try {
+            clue = wordleGame.makeSuggestion("apple");
+        } catch (Exception e) {
+            fail("Не должно было быть исключения для слова apple");
+        }
         assertEquals(5, clue.length());
         assertTrue(clue.matches("[+^\\-]+"));
     }
@@ -117,9 +131,19 @@ class WordleTest {
     @Test
     void testFullGameFlowWithWin() {
         assertTrue(wordleGame.isStepsCountEnough());
-        String clue1 = wordleGame.makeSuggestion("table");
+        String clue1 = "";
+        try {
+            clue1 = wordleGame.makeSuggestion("table");
+        } catch (Exception e) {
+            fail("Не должно было быть исключения для слова table");
+        }
         assertNotNull(clue1);
-        String clue2 = wordleGame.makeSuggestion("chair");
+        String clue2 = "";
+        try {
+            clue2 = wordleGame.makeSuggestion("chair");
+        } catch (Exception e) {
+            fail("Не должно было быть исключения для слова chair");
+        }
         assertNotNull(clue2);
         assertEquals(4, wordleGame.getStepsLeft());
     }
@@ -129,10 +153,13 @@ class WordleTest {
         WordleGame game1 = new WordleGame(wordleDictionary, printWriter);
         WordleGame game2 = new WordleGame(wordleDictionary, printWriter);
 
-        game1.makeSuggestion("table");
-        game2.makeSuggestion("chair");
+        try {
+            game1.makeSuggestion("table");
+            game2.makeSuggestion("chair");
+        } catch (Exception e) {
+            fail("Не должно было быть исключения");
+        }
 
-        // Проверяем, что состояния игр независимы
         assertEquals(5, game1.getStepsLeft());
         assertEquals(5, game2.getStepsLeft());
     }
@@ -152,7 +179,11 @@ class WordleTest {
         assertEquals(6, newGame.getStepsLeft());
         for (int i = 6; i > 0; i--) {
             assertEquals(i, newGame.getStepsLeft());
-            newGame.makeSuggestion("water");
+            try {
+                newGame.makeSuggestion("water");
+            } catch (Exception e) {
+                fail("Не должно было быть исключения для слова water");
+            }
         }
         assertEquals(0, newGame.getStepsLeft());
         assertFalse(newGame.isStepsCountEnough());
