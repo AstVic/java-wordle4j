@@ -37,3 +37,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
+/logFile.txt
+/logFileTest.txt
+/test_words.txt
